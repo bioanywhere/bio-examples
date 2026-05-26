@@ -1,0 +1,37 @@
+{
+  "name": "@workspace/bio-starter-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A ready-to-run example of a multi-skill bio agent plus a client that calls it through the marketplace.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch agent/index.ts",
+    "start": "tsx agent/index.ts",
+    "demo": "tsx client/cli.ts",
+    "demo:local": "tsx client/cli.ts --local",
+    "web": "tsx client/server.ts",
+    "register": "tsx scripts/register.ts",
+    "try-marketplace": "tsx scripts/try-marketplace.ts",
+    "prepare-template": "tsx scripts/prepare-template.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@a2a-js/sdk": "^0.3.13",
+    "bio": "workspace:^0.1.0",
+    "bio-agent": "workspace:^0.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "openai": "^4.68.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "^5.9.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
