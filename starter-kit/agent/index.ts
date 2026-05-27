@@ -19,5 +19,5 @@ console.log("");
 console.log("Next steps:");
 console.log("  1. Expose this on a public HTTPS URL (e.g. deploy to Vercel).");
 console.log("  2. Run `pnpm register` to print the /integrate payload.");
-console.log("  3. Paste at https://bioanywhere.replit.app/integrate.");
+console.log("  3. Paste at https://bioanywhere.com/integrate.");
 console.log("");

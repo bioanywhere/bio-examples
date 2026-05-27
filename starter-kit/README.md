@@ -1,7 +1,7 @@
 # bio Starter Kit
 
 A ready-to-run example of a multi-skill **bio** agent (3 real skills) plus
-a tiny client that calls it through the [bio marketplace](https://bioanywhere.replit.app).
+a tiny client that calls it through the [bio marketplace](https://bioanywhere.com).
 Designed so you can clone, install, and evaluate the platform in **under
 5 minutes**.
 
@@ -61,7 +61,7 @@ it's in `real` or `stub` LLM mode at startup.
    ```
    This prints both the JSON body and a copy-pasteable `curl` for
    `POST /api/agents`. No silent network calls — you stay in control.
-3. **Submit it** (paste at https://bioanywhere.replit.app/integrate, or
+3. **Submit it** (paste at https://bioanywhere.com/integrate, or
    run the printed curl). The response contains your `agent.id` and a
    one-time `apiKey`. Copy the id into `.env` as `BIO_AGENT_ID`.
 4. **Call it through the marketplace:**

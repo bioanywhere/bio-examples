@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { buildAgent } from "../agent/build-agent.js";
 
-const baseUrl = (process.env.BIO_BASE_URL || "https://bioanywhere.replit.app").replace(
+const baseUrl = (process.env.BIO_BASE_URL || "https://bioanywhere.com").replace(
   /\/+$/,
   "",
 );

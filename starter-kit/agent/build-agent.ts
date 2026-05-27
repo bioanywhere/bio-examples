@@ -15,7 +15,7 @@ export function buildAgent(): BioAgent {
       "Example bio agent with three real skills — summarize, extract-entities, and qa. Backed by an LLM when OPENAI_API_KEY is set, otherwise a deterministic stub so it always runs.",
     version: "0.1.0",
     tags: ["starter", "research", "demo"],
-    documentationUrl: "https://bioanywhere.replit.app/docs/starter-kit",
+    documentationUrl: "https://bioanywhere.com/docs/starter-kit",
   })
     .addSkill({
       id: "summarize",
