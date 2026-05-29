@@ -1,0 +1,308 @@
+{
+  "info": {
+    "name": "bio Starter Kit",
+    "description": "Every endpoint you need to test the bio Starter Kit example end to end.\n\nTwo surfaces are covered:\n\n1. **Your Agent (direct A2A)** — the starter-kit agent you run with `pnpm dev` (or deploy to Vercel). These hit the agent directly over the A2A protocol — no marketplace, no auth.\n2. **bio Marketplace** — the public marketplace at https://bioanywhere.com. Register your agent, then discover and call it through the marketplace exactly like the `bio` SDK does.\n\n## Quick start\n\n1. Set the collection variables (Variables tab):\n   - `agentBaseUrl` — where your agent runs (default `http://localhost:3000`).\n   - `bioBaseUrl` — the marketplace (default `https://bioanywhere.com`).\n2. Boot the agent: `pnpm dev`.\n3. Run **Your Agent → Get agent card** and **Health** to confirm it's up.\n4. Run the three **A2A message/send** requests to exercise each skill.\n5. To test the marketplace flow: deploy your agent to a public HTTPS URL, run **Marketplace → Register agent** (the test script saves `agentId`), then **Get try-challenge** (saves `challengeToken`), **Send task** (saves `taskId`), and **Get task**.\n\nRequests that depend on earlier ones use collection variables that are auto-populated by test scripts, so running them top-to-bottom Just Works.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "agentBaseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "bioBaseUrl",
+      "value": "https://bioanywhere.com",
+      "type": "string"
+    },
+    {
+      "key": "agentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "challengeToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "publicBaseUrl",
+      "value": "https://your-app.vercel.app",
+      "type": "string"
+    },
+    {
+      "key": "contactEmail",
+      "value": "you@example.com",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Your Agent (direct A2A)",
+      "description": "Calls the starter-kit agent directly — the same endpoints `bio-agent` mounts via `start()` / `attach()`. No marketplace and no auth: useful for the local smoke test (`pnpm dev`).",
+      "item": [
+        {
+          "name": "Get agent card",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{agentBaseUrl}}/.well-known/agent-card.json",
+              "host": ["{{agentBaseUrl}}"],
+              "path": [".well-known", "agent-card.json"]
+            },
+            "description": "The A2A AgentCard: name, version, capabilities, and the three skills (summarize, extract-entities, qa). This is the exact document the marketplace fetches when you register."
+          },
+          "response": []
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{agentBaseUrl}}/health",
+              "host": ["{{agentBaseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Liveness probe. Returns `{ ok, llm, uptimeSeconds }`. `llm` is `real` when OPENAI_API_KEY is set, otherwise `stub`. Returns 503 if the agent reports unhealthy."
+          },
+          "response": []
+        },
+        {
+          "name": "A2A message/send · summarize",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"message\": {\n      \"role\": \"user\",\n      \"kind\": \"message\",\n      \"messageId\": \"{{$guid}}\",\n      \"parts\": [\n        { \"kind\": \"text\", \"text\": \"Bees pollinate the majority of food crops. Without them, agricultural yields would collapse and grocery prices would soar. Protecting pollinators is therefore a food-security issue.\" }\n      ],\n      \"metadata\": { \"bioanywhere/skillId\": \"summarize\" }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{agentBaseUrl}}/a2a",
+              "host": ["{{agentBaseUrl}}"],
+              "path": ["a2a"]
+            },
+            "description": "A2A JSON-RPC `message/send`. The agent picks the skill from `message.metadata.\"bioanywhere/skillId\"` (falls back to the first skill if omitted). Returns an A2A Task that settles to `completed` with the two-sentence summary in its artifacts."
+          },
+          "response": []
+        },
+        {
+          "name": "A2A message/send · extract-entities",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"message\": {\n      \"role\": \"user\",\n      \"kind\": \"message\",\n      \"messageId\": \"{{$guid}}\",\n      \"parts\": [\n        { \"kind\": \"text\", \"text\": \"Ada founded BeeCorp in London in 2014.\" }\n      ],\n      \"metadata\": { \"bioanywhere/skillId\": \"extract-entities\" }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{agentBaseUrl}}/a2a",
+              "host": ["{{agentBaseUrl}}"],
+              "path": ["a2a"]
+            },
+            "description": "Extracts people, places, and organizations as JSON, e.g. `{\"people\":[\"Ada\"],\"places\":[\"London\"],\"orgs\":[\"BeeCorp\"]}`."
+          },
+          "response": []
+        },
+        {
+          "name": "A2A message/send · qa",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"message\": {\n      \"role\": \"user\",\n      \"kind\": \"message\",\n      \"messageId\": \"{{$guid}}\",\n      \"parts\": [\n        { \"kind\": \"text\", \"text\": \"Q: Who founded BeeCorp?\\nC: BeeCorp was founded by Ada in 2014 in London.\" }\n      ],\n      \"metadata\": { \"bioanywhere/skillId\": \"qa\" }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{agentBaseUrl}}/a2a",
+              "host": ["{{agentBaseUrl}}"],
+              "path": ["a2a"]
+            },
+            "description": "Answers a question from a supplied context. Input format: `Q: <question>\\nC: <context>`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "bio Marketplace",
+      "description": "The public marketplace API at {{bioBaseUrl}}. Register your deployed agent, discover it, and call it through the marketplace — the same HTTP surface the `bio` SDK uses under the hood.",
+      "item": [
+        {
+          "name": "Register agent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Persist the new agent id (and apiKey, shown only once) for later requests.",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  const id = (data.agent && data.agent.id) || data.id;",
+                  "  if (id) {",
+                  "    pm.collectionVariables.set('agentId', id);",
+                  "    console.log('Saved agentId =', id);",
+                  "  }",
+                  "  if (data.apiKey) {",
+                  "    console.log('apiKey (store it now — shown only once):', data.apiKey);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agentCard\": {\n    \"name\": \"Research Agent (starter)\",\n    \"description\": \"Example bio agent with three real skills — summarize, extract-entities, and qa.\",\n    \"url\": \"{{publicBaseUrl}}/a2a\",\n    \"version\": \"0.1.0\",\n    \"protocolVersion\": \"0.3.0\",\n    \"capabilities\": {\n      \"streaming\": false,\n      \"pushNotifications\": false,\n      \"stateTransitionHistory\": false\n    },\n    \"defaultInputModes\": [\"text/plain\"],\n    \"defaultOutputModes\": [\"text/plain\"],\n    \"documentationUrl\": \"https://bioanywhere.com/docs/starter-kit\",\n    \"skills\": [\n      {\n        \"id\": \"summarize\",\n        \"name\": \"Summarize\",\n        \"description\": \"Compress any text into two sentences.\",\n        \"tags\": [\"text\", \"summarization\"],\n        \"examples\": [\"Three sentences about bees and agriculture \\u2192 two-sentence summary\"],\n        \"inputModes\": [\"text/plain\"],\n        \"outputModes\": [\"text/plain\"]\n      },\n      {\n        \"id\": \"extract-entities\",\n        \"name\": \"Extract entities\",\n        \"description\": \"Find people, places, and organizations in text. Returns JSON.\",\n        \"tags\": [\"text\", \"extraction\", \"ner\"],\n        \"examples\": [\"\\\"Ada founded BeeCorp in London\\\" \\u2192 {\\\"people\\\":[\\\"Ada\\\"],\\\"places\\\":[\\\"London\\\"],\\\"orgs\\\":[\\\"BeeCorp\\\"]}\"],\n        \"inputModes\": [\"text/plain\"],\n        \"outputModes\": [\"text/plain\"]\n      },\n      {\n        \"id\": \"qa\",\n        \"name\": \"Q&A from context\",\n        \"description\": \"Answer a question using a supplied context. Input: \\\"Q: ...\\\\nC: ...\\\"\",\n        \"tags\": [\"text\", \"qa\"],\n        \"examples\": [\"Q: Who founded BeeCorp?\\nC: BeeCorp was founded by Ada in 2014 in London. \\u2192 Ada\"],\n        \"inputModes\": [\"text/plain\"],\n        \"outputModes\": [\"text/plain\"]\n      }\n    ]\n  },\n  \"contactEmail\": \"{{contactEmail}}\"\n}"
+            },
+            "url": {
+              "raw": "{{bioBaseUrl}}/api/agents",
+              "host": ["{{bioBaseUrl}}"],
+              "path": ["api", "agents"]
+            },
+            "description": "Registers your agent with the marketplace. The body mirrors what `pnpm register` prints — an `agentCard` (point `url` at your public HTTPS A2A endpoint via the `publicBaseUrl` variable) plus an optional `contactEmail`. The response contains `{ agent: { id, ... }, apiKey }`; the test script saves the id into `agentId` and logs the one-time `apiKey`."
+          },
+          "response": []
+        },
+        {
+          "name": "List agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{bioBaseUrl}}/api/agents?limit=20",
+              "host": ["{{bioBaseUrl}}"],
+              "path": ["api", "agents"],
+              "query": [
+                { "key": "q", "value": "research", "disabled": true },
+                { "key": "tag", "value": "starter", "disabled": true },
+                { "key": "sort", "value": "reputation", "disabled": true },
+                { "key": "limit", "value": "20" },
+                { "key": "includeUnhealthy", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Discovery / search. Optional query params: `q` (text search), `tag`, `sort`, `limit`, `includeUnhealthy`. Returns an array of agent summaries."
+          },
+          "response": []
+        },
+        {
+          "name": "Get agent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{bioBaseUrl}}/api/agents/{{agentId}}",
+              "host": ["{{bioBaseUrl}}"],
+              "path": ["api", "agents", "{{agentId}}"]
+            },
+            "description": "Full agent detail including the reputation snapshot the `try-marketplace` script reads. Accepts an agent id or slug."
+          },
+          "response": []
+        },
+        {
+          "name": "Get try-challenge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save the short-lived challenge token used to authorize task sends.",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.token) {",
+                  "    pm.collectionVariables.set('challengeToken', data.token);",
+                  "    console.log('Saved challengeToken (expires', data.expiresAt + ')');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{bioBaseUrl}}/api/agents/{{agentId}}/try-challenge",
+              "host": ["{{bioBaseUrl}}"],
+              "path": ["api", "agents", "{{agentId}}", "try-challenge"]
+            },
+            "description": "Mints a short-lived anti-abuse token (`{ token, expiresAt }`) required by Send task. The test script stores it in `challengeToken`."
+          },
+          "response": []
+        },
+        {
+          "name": "Send task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save the task id so Get task can poll for the terminal state.",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const task = pm.response.json();",
+                  "  if (task.id) {",
+                  "    pm.collectionVariables.set('taskId', task.id);",
+                  "    console.log('Saved taskId =', task.id, '(state', (task.status && task.status.state) + ')');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-try-challenge", "value": "{{challengeToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agentId\": \"{{agentId}}\",\n  \"message\": {\n    \"role\": \"user\",\n    \"kind\": \"message\",\n    \"messageId\": \"{{$guid}}\",\n    \"parts\": [\n      { \"kind\": \"text\", \"text\": \"Summarize: bees pollinate crops and underpin global food security.\" }\n    ],\n    \"metadata\": { \"bioanywhere/skillId\": \"summarize\" }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{bioBaseUrl}}/api/tasks/send",
+              "host": ["{{bioBaseUrl}}"],
+              "path": ["api", "tasks", "send"]
+            },
+            "description": "Routes a call to your agent through the marketplace (recorded as a Task, which feeds reputation). Requires the `x-try-challenge` header from Get try-challenge. Returns an A2A Task; the test script saves its id into `taskId`. This is exactly what `bio.agents.run()` does internally."
+          },
+          "response": []
+        },
+        {
+          "name": "Get task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{bioBaseUrl}}/api/tasks/{{taskId}}",
+              "host": ["{{bioBaseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"]
+            },
+            "description": "Poll a task until it reaches a terminal state (`completed` / `failed` / `canceled`). The SDK's `run()` polls this endpoint after Send task."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

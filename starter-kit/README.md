@@ -21,6 +21,7 @@ starter-kit/
   scripts/
     register.ts         ← print the /integrate payload + curl
     try-marketplace.ts  ← call N times and show the reputation delta
+  postman/              ← importable Postman collection (every endpoint)
   .env.example          ← every var the kit reads, with comments
   vercel.json           ← one-click Deploy to Vercel
 ```
@@ -86,6 +87,29 @@ Reads your agent's reputation snapshot, fires N calls (default 3),
 waits a beat for the marketplace to roll up, and prints the delta.
 Demonstrates that real usage moves the dial — Bioanywhere's main
 differentiator over a generic A2A registry.
+
+## Test every endpoint with Postman
+
+Prefer clicking through requests to writing curl? Import
+[`postman/bio-starter-kit.postman_collection.json`](postman/bio-starter-kit.postman_collection.json)
+into Postman (**Import → File**) for a ready-made collection covering
+**every** endpoint the kit touches:
+
+- **Your Agent (direct A2A)** — `GET /.well-known/agent-card.json`,
+  `GET /health`, and `POST /a2a` (`message/send`) with one request per
+  skill (summarize · extract-entities · qa).
+- **bio Marketplace** — `POST /api/agents` (register),
+  `GET /api/agents` (list/search), `GET /api/agents/:id`,
+  `GET /api/agents/:id/try-challenge`, `POST /api/tasks/send`, and
+  `GET /api/tasks/:id`.
+
+Set the collection variables once (`agentBaseUrl`, `bioBaseUrl`, and —
+for the marketplace flow — `publicBaseUrl` / `contactEmail`), then run
+the requests top-to-bottom. Test scripts chain the values for you:
+**Register** saves `agentId`, **Get try-challenge** saves
+`challengeToken`, and **Send task** saves `taskId`, so the dependent
+requests work without copy-pasting ids by hand. The collection mirrors
+exactly what the `bio` SDK does under the hood.
 
 ## Vercel deploy notes
 
